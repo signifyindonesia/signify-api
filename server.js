@@ -5,7 +5,7 @@ import routes from "./routes/routes.js";
 const init = async () => {
   const server = Hapi.server({
     port: process.env.PORT || 9000,
-    host: "localhost",
+    host: "0.0.0.0",
     routes: {
       cors: {
         origin: ["*"], // agar bisa akses dari Postman/frontend
