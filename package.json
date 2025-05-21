@@ -1,0 +1,30 @@
+{
+  "name": "signify-api",
+  "version": "1.0.0",
+  "description": "RESTful API backend for Signify - AI Sign Language Translator",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "signify",
+    "hapi",
+    "firebase",
+    "sign-language",
+    "api"
+  ],
+  "author": "Team Signify",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/hapi": "^21.4.0",
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.5.0",
+    "firebase": "^11.8.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
