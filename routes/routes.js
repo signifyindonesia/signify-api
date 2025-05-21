@@ -1,5 +1,7 @@
 import { register, login } from "../controllers/authController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import notFoundHandler from "../controllers/notFoundController.js";
+import profileHandler from "../controllers/profileController.js";
 
 const routes = [
   {
@@ -15,17 +17,15 @@ const routes = [
   {
     method: "GET",
     path: "/profile",
+    handler: profileHandler,
     options: {
       pre: [{ method: verifyToken }],
-      handler: (request, h) => {
-        const user = request.auth.credentials;
-        return h.response({
-          status: "success",
-          message: "Profil pengguna berhasil diambil",
-          data: user,
-        });
-      },
     },
+  },
+  {
+    method: "*",
+    path: "/{any*}",
+    handler: notFoundHandler,
   },
 ];
 

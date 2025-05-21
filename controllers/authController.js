@@ -2,11 +2,28 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "../config/firebase.js";
 import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import forbiddenKeywords from "../utils/forbiddenKeywords.js";
 
 // REGISTER
 const register = async (request, h) => {
   const { name, email, password } = request.payload;
 
+  const isInvalidNameOrEmail = forbiddenKeywords.some(
+    (keyword) =>
+      name.toLowerCase().includes(keyword) ||
+      email.toLowerCase().includes(keyword)
+  );
+
+  if (isInvalidNameOrEmail) {
+    return h
+      .response({
+        status: "fail",
+        message:
+          "Nama atau email tidak boleh mengandung kata terlarang seperti 'admin'.",
+      })
+      .code(400);
+  }
+  
   try {
     const userSnapshot = await getDocs(
       query(collection(db, "users"), where("email", "==", email))

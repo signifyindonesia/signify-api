@@ -7,7 +7,7 @@ Ini adalah backend API untuk aplikasi **Signify** – Aplikasi Penerjemah Bahasa
 ## 🚀 URL Server
 
 - Lokal: `http://localhost:9000`
-- (Tambahkan URL Netlify jika sudah dideploy)
+- Production: `https://signify-api.onrender.com/`
 
 ---
 
@@ -90,7 +90,7 @@ Ini adalah backend API untuk aplikasi **Signify** – Aplikasi Penerjemah Bahasa
         "message": "Profil pengguna berhasil diambil",
         "data": {
             "name": "Yudha",
-            "email": "rizky@example.com"
+            "email": "yudha@example.com"
         }
     }
     ```
