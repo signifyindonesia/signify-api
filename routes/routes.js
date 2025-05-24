@@ -1,9 +1,14 @@
 import { register, login } from "../controllers/authController.js";
+import {
+  getProfile,
+  updateProfile,
+  updatePassword,
+} from "../controllers/profileController.js";
 import { verifyToken } from "../middleware/authMiddleware.js";
 import notFoundHandler from "../controllers/notFoundController.js";
-import profileHandler from "../controllers/profileController.js";
 
 const routes = [
+  // AUTH
   {
     method: "POST",
     path: "/register",
@@ -14,14 +19,34 @@ const routes = [
     path: "/login",
     handler: login,
   },
+
+  // PROFILE (protected)
   {
     method: "GET",
     path: "/profile",
-    handler: profileHandler,
+    handler: getProfile,
     options: {
       pre: [{ method: verifyToken }],
     },
   },
+  {
+    method: "PUT",
+    path: "/profile",
+    handler: updateProfile,
+    options: {
+      pre: [{ method: verifyToken }],
+    },
+  },
+  {
+    method: "PUT",
+    path: "/profile/password",
+    handler: updatePassword,
+    options: {
+      pre: [{ method: verifyToken }],
+    },
+  },
+
+  // CATCH-ALL
   {
     method: "*",
     path: "/{any*}",
