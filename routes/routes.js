@@ -46,6 +46,15 @@ const routes = [
     },
   },
 
+  // Health
+  {
+    method: 'GET',
+    path: '/health',
+    handler: (request, h) => {
+      return h.response({ status: 'ok' }).code(200);
+    }
+  },  
+
   // CATCH-ALL
   {
     method: "*",

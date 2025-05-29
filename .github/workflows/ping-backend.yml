@@ -1,0 +1,14 @@
+name: Keep Backend Awake
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Setiap 5 menit
+  workflow_dispatch:       # Bisa manual run juga
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl to Hapi.js /health endpoint
+        run: |
+          curl --fail https://signify-api.onrender.com//health || echo "Endpoint unreachable"
