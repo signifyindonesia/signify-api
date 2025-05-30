@@ -37,6 +37,7 @@ const routes = [
       pre: [{ method: verifyToken }],
     },
   },
+
   {
     method: "PUT",
     path: "/profile/password",
