@@ -7,7 +7,6 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase.js";
 import bcrypt from "bcrypt";
-import { generateAvatarUrl } from "../utils/avatar.js";
 
 // GET PROFILE
 const getProfile = async (request, h) => {
@@ -20,7 +19,6 @@ const getProfile = async (request, h) => {
       data: {
         name: user.name,
         email: user.email,
-        photoUrl: user.photoUrl || null,
       },
     })
     .code(200);
@@ -62,12 +60,10 @@ const updateProfile = async (request, h) => {
     const userDoc = userSnapshot.docs[0];
     const updatedName = name || currentUser.name;
     const updatedEmail = email || currentUser.email;
-    const photoUrl = generateAvatarUrl(updatedName);
 
     await updateDoc(userDoc.ref, {
       name: updatedName,
       email: updatedEmail,
-      photoUrl,
     });
 
     return h
@@ -77,7 +73,6 @@ const updateProfile = async (request, h) => {
         data: {
           name: updatedName,
           email: updatedEmail,
-          photoUrl,
         },
       })
       .code(200);
