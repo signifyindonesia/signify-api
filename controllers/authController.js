@@ -52,7 +52,8 @@ const register = async (request, h) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const avatarUrl = generateAvatarUrl(name);
 
-    await addDoc(collection(db, "users"), {
+    // Tambahkan user ke Firestore
+    const docRef = await addDoc(collection(db, "users"), {
       name,
       email,
       password: hashedPassword,
@@ -60,20 +61,37 @@ const register = async (request, h) => {
       createdAt: new Date().toISOString(),
     });
 
-    return h
-      .response({
-        status: "success",
-        message: "Registrasi berhasil. Silakan login.",
-      })
-      .code(201);
+    // Generate token JWT
+    const token = jwt.sign(
+      {
+        id: docRef.id,
+        email,
+        name,
+        photoUrl: avatarUrl,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    return h.response({
+      status: "success",
+      message: "Registrasi berhasil",
+      data: {  // Tambahkan data token dan user
+        token,
+        user: {
+          id: docRef.id,
+          name,
+          email,
+          photoUrl: avatarUrl,
+        },
+      },
+    }).code(201);
   } catch (err) {
     console.error(err);
-    return h
-      .response({
-        status: "error",
-        message: "Terjadi kesalahan saat registrasi.",
-      })
-      .code(500);
+    return h.response({
+      status: "error",
+      message: "Terjadi kesalahan saat registrasi",
+    }).code(500);
   }
 };
 
