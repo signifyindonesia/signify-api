@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { db } from "../config/firebase.js";
+import { auth, db } from "../config/firebase.js";
 import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import forbiddenKeywords from "../utils/forbiddenKeywords.js";
 import { generateAvatarUrl } from "../utils/avatar.js";
@@ -139,7 +139,7 @@ const login = async (request, h) => {
       {
         email: user.email,
         name: user.name,
-        photoUrl: user.photoUrl || null,
+        photoUrl: user.photoUrl || avatarUrl,
       },
       process.env.JWT_SECRET,
       {
@@ -172,4 +172,73 @@ const login = async (request, h) => {
   }
 };
 
-export { register, login };
+// Login With Google
+const loginWithGoogle = async (request, h) => {
+  const { token } = request.payload;
+
+  if (!token) {
+    return h
+      .response({
+        status: "fail",
+        message: "Token tidak ditemukan.",
+      })
+      .code(400);
+  }
+
+  try {
+    const decodedToken = await auth.verifyIdToken(token);
+    const { uid, email, name, picture } = decodedToken;
+
+    const userRef = db.collection("users").doc(uid);
+    const userDoc = await userRef.get();
+    const avatarUrl = generateAvatarUrl(name);
+
+    // Jika user belum terdaftar, tambahkan ke Firestore
+    if (!userDoc.exists) {
+      await userRef.set({
+        name: name || "Anonymous",
+        email,
+        photoUrl: picture || avatarUrl,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    // JWT backend
+    const jwtToken = jwt.sign(
+      {
+        uid,
+        email,
+        name,
+        photoUrl: picture || avatarUrl,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    return h
+      .response({
+        status: "success",
+        message: "Login dengan Google berhasil.",
+        data: {
+          token: jwtToken,
+          user: {
+            id: uid,
+            name,
+            email,
+            photoUrl: picture || avatarUrl,
+          },
+        },
+      })
+      .code(200);
+  } catch (err) {
+    console.error("[LoginGoogleError]", err);
+    return h
+      .response({
+        status: "error",
+        message: "Token tidak valid atau kedaluwarsa.",
+      })
+      .code(401);
+  }
+};
+
+export { register, login, loginWithGoogle };

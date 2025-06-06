@@ -1,4 +1,4 @@
-import { register, login } from "../controllers/authController.js";
+import { register, login, loginWithGoogle } from "../controllers/authController.js";
 import {
   getProfile,
   updateProfile,
@@ -18,6 +18,11 @@ const routes = [
     method: "POST",
     path: "/login",
     handler: login,
+  },
+  {
+    method: "POST",
+    path: "/google",
+    handler: loginWithGoogle,
   },
 
   // PROFILE (protected)
