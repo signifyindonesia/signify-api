@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { auth, db } from "../config/firebase.js";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import forbiddenKeywords from "../utils/forbiddenKeywords.js";
 import { generateAvatarUrl } from "../utils/avatar.js";
 
@@ -36,9 +35,10 @@ const register = async (request, h) => {
   }
 
   try {
-    const userSnapshot = await getDocs(
-      query(collection(db, "users"), where("email", "==", email))
-    );
+    // --- MENGGUNAKAN SINTAKS ADMIN SDK ---
+    const usersRef = db.collection("users");
+    const userSnapshot = await usersRef.where("email", "==", email).get();
+    // ------------------------------------
 
     if (!userSnapshot.empty) {
       return h
@@ -52,14 +52,15 @@ const register = async (request, h) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const avatarUrl = generateAvatarUrl(name);
 
-    // Tambahkan user ke Firestore
-    const docRef = await addDoc(collection(db, "users"), {
+    // --- MENGGUNAKAN SINTAKS ADMIN SDK ---
+    const docRef = await db.collection("users").add({
       name,
       email,
       password: hashedPassword,
       photoUrl: avatarUrl,
       createdAt: new Date().toISOString(),
     });
+    // ------------------------------------
 
     // Generate token JWT
     const token = jwt.sign(
@@ -73,25 +74,29 @@ const register = async (request, h) => {
       { expiresIn: "2h" }
     );
 
-    return h.response({
-      status: "success",
-      message: "Registrasi berhasil",
-      data: {  // Tambahkan data token dan user
-        token,
-        user: {
-          id: docRef.id,
-          name,
-          email,
-          photoUrl: avatarUrl,
+    return h
+      .response({
+        status: "success",
+        message: "Registrasi berhasil",
+        data: {
+          token,
+          user: {
+            id: docRef.id,
+            name,
+            email,
+            photoUrl: avatarUrl,
+          },
         },
-      },
-    }).code(201);
+      })
+      .code(201);
   } catch (err) {
     console.error(err);
-    return h.response({
-      status: "error",
-      message: "Terjadi kesalahan saat registrasi",
-    }).code(500);
+    return h
+      .response({
+        status: "error",
+        message: "Terjadi kesalahan saat registrasi",
+      })
+      .code(500);
   }
 };
 
@@ -109,9 +114,10 @@ const login = async (request, h) => {
   }
 
   try {
-    const userSnapshot = await getDocs(
-      query(collection(db, "users"), where("email", "==", email))
-    );
+    // --- MENGGUNAKAN SINTAKS ADMIN SDK ---
+    const usersRef = db.collection("users");
+    const userSnapshot = await usersRef.where("email", "==", email).get();
+    // ------------------------------------
 
     if (userSnapshot.empty) {
       return h
@@ -137,9 +143,10 @@ const login = async (request, h) => {
 
     const token = jwt.sign(
       {
+        id: userDoc.id,
         email: user.email,
         name: user.name,
-        photoUrl: user.photoUrl || avatarUrl,
+        photoUrl: user.photoUrl || null, // PERBAIKAN BUG
       },
       process.env.JWT_SECRET,
       {
@@ -189,11 +196,13 @@ const loginWithGoogle = async (request, h) => {
     const decodedToken = await auth.verifyIdToken(token);
     const { uid, email, name, picture } = decodedToken;
 
+    // --- MENGGUNAKAN SINTAKS ADMIN SDK ---
     const userRef = db.collection("users").doc(uid);
     const userDoc = await userRef.get();
+    // ------------------------------------
+
     const avatarUrl = generateAvatarUrl(name);
 
-    // Jika user belum terdaftar, tambahkan ke Firestore
     if (!userDoc.exists) {
       await userRef.set({
         name: name || "Anonymous",
@@ -203,7 +212,6 @@ const loginWithGoogle = async (request, h) => {
       });
     }
 
-    // JWT backend
     const jwtToken = jwt.sign(
       {
         uid,
