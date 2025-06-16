@@ -15,10 +15,11 @@ const getProfile = async (request, h) => {
   return h
     .response({
       status: "success",
-      message: "Profil pengguna berhasil diambil.",
+      message: "Profil berhasil diambil.",
       data: {
         name: user.name,
         email: user.email,
+        photoUrl: user.photoUrl || null,
       },
     })
     .code(200);
@@ -36,10 +37,7 @@ const updateProfile = async (request, h) => {
 
     if (userSnapshot.empty) {
       return h
-        .response({
-          status: "fail",
-          message: "Pengguna tidak ditemukan.",
-        })
+        .response({ status: "fail", message: "Pengguna tidak ditemukan." })
         .code(404);
     }
 
@@ -51,7 +49,7 @@ const updateProfile = async (request, h) => {
         return h
           .response({
             status: "fail",
-            message: "Email sudah digunakan pengguna lain.",
+            message: "Email sudah digunakan.",
           })
           .code(400);
       }
@@ -79,10 +77,7 @@ const updateProfile = async (request, h) => {
   } catch (error) {
     console.error(error);
     return h
-      .response({
-        status: "error",
-        message: "Gagal memperbarui profil.",
-      })
+      .response({ status: "error", message: "Gagal update profil." })
       .code(500);
   }
 };
@@ -90,19 +85,16 @@ const updateProfile = async (request, h) => {
 // UPDATE PASSWORD
 const updatePassword = async (request, h) => {
   const { newPassword } = request.payload;
-  const user = request.auth.credentials;
+  const currentUser = request.auth.credentials;
 
   try {
     const userSnapshot = await getDocs(
-      query(collection(db, "users"), where("email", "==", user.email))
+      query(collection(db, "users"), where("email", "==", currentUser.email))
     );
 
     if (userSnapshot.empty) {
       return h
-        .response({
-          status: "fail",
-          message: "Pengguna tidak ditemukan.",
-        })
+        .response({ status: "fail", message: "Pengguna tidak ditemukan." })
         .code(404);
     }
 
@@ -120,10 +112,7 @@ const updatePassword = async (request, h) => {
   } catch (error) {
     console.error(error);
     return h
-      .response({
-        status: "error",
-        message: "Gagal memperbarui password.",
-      })
+      .response({ status: "error", message: "Gagal update password." })
       .code(500);
   }
 };
